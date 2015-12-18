@@ -30,11 +30,11 @@
     "test": "mocha"
   },
   "dependencies": {
-    "validator": "^4.4.0"
+    "validator": "*"
   },
   "devDependencies": {
-    "mocha": "^1.18.0",
-    "should": "^3.3.2"
+    "mocha": "2.0.0",
+    "should": "7.0.0"
   },
   "readmeFilename": "README.md",
   "license": "MIT"
