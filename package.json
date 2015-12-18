@@ -1,0 +1,41 @@
+{
+  "name": "validator-middleware",
+  "description": "validator middleware",
+  "version": "0.0.1",
+  "author": "lvyuanjiao <lvyuanjiao@yeah.net>",
+  "contributors": [{
+    "name": "Lv yuanjiao",
+    "email": "lvyuanjiao@yeah.net",
+    "url": "http://lvyuanjiao.com"
+  }],
+  "homepage": "https://github.com/lvyuanjiao/validator-middleware",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lvyuanjiao/validator-middleware.git"
+  },
+	"bugs": {
+    "url": "https://github.com/lvyuanjiao/validator-middleware/issues"
+  },
+  "keywords": [
+    "validator",
+    "middleware",
+    "validation",
+    "validator.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": "*"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "validator": "^4.4.0"
+  },
+  "devDependencies": {
+    "mocha": "^1.18.0",
+    "should": "^3.3.2"
+  },
+  "readmeFilename": "README.md",
+  "license": "MIT"
+}
