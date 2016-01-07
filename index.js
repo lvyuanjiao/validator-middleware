@@ -24,13 +24,11 @@ function Validation(fields, callback) {
   return function(req, res, next) {
 
     function getFieldValue(field) {
-      return req[field.context] && req[field.context][field.name];
+      return getProp(req, field.qualifiedName);
     }
 
     function setFieldValue(field, val) {
-      if (req[field.context]) {
-        req[field.context][field.name] = val;
-      }
+      setProp(req, field.qualifiedName, val);
     }
 
     series(fields, function(field, next) {
@@ -85,12 +83,11 @@ Validation.extend = function(name, handler) {
 }
 
 function Field(field, optional) {
-  var i = field.indexOf('.');
-  if (i === -1) {
+  if (!isQualifiedName(field)) {
     throw new Error('Invalid field name');
   }
-  this.context = field.substring(0, i);
-  this.name = field.substring(i + 1, field.length);
+  this.name = field.split('.').pop();
+  this.qualifiedName = field;
   this.optional = optional || false;
   this.chain = [];
 };
@@ -128,6 +125,30 @@ function isValidatorExist(name) {
   if (!fn) {
     throw new Error('Validator ' + name + ' not found');
   }
+}
+
+function isQualifiedName(name) {
+  return /^[a-zA-Z_$]([a-zA-Z_$][a-zA-Z\d_$]*\.)*[a-zA-Z_$][a-zA-Z\d_$]*[a-zA-Z\d_$]$/.test(name);
+}
+
+// http://stackoverflow.com/questions/17078871/set-json-property-with-fully-qualified-string
+function setProp(obj, qualifiedName, value) {
+  var props = qualifiedName.split('.');
+  return [obj].concat(props).reduce(function(a, b, i) {
+    return i == props.length ? a[b] = value : a[b];
+  });
+}
+
+function getProp(obj, qualifiedName) {
+  var root = obj;
+  var value;
+  qualifiedName.split('.').forEach(function(name) {
+    if (!root[name]) {
+      return value = undefined;
+    }
+    value = root = root[name];
+  });
+  return value;
 }
 
 Validation.Field = Field;

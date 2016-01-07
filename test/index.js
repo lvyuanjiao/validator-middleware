@@ -6,7 +6,7 @@ var validation = require('../index');
 describe('FIELD', function() {
   it('should throw error when the field name is invalid', function() {
     should.throws(function() {
-      new validation.Field('noContext');
+      new validation.Field('');
     }, function(err) {
       if ((err instanceof Error) && /Invalid field name/.test(err)) {
         return true;
@@ -15,14 +15,12 @@ describe('FIELD', function() {
   });
   it('should construct a Field object', function() {
     var field = new validation.Field('body.id');
-    should.equal(field.context, 'body');
     should.equal(field.name, 'id');
     should.equal(field.optional, false);
     field.chain.should.instanceof(Array).with.length(0);
   });
   it('should construct a optional Field object', function() {
     var field = new validation.Field('body.id', true);
-    should.equal(field.context, 'body');
     should.equal(field.name, 'id');
     should.equal(field.optional, true);
     field.chain.should.instanceof(Array).with.length(0);
