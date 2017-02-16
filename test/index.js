@@ -45,22 +45,22 @@ describe('FIELD', function() {
   });
   it('should add a rule to field chain', function() {
     var field = new validation.Field('body.id');
-    field.rule('isNull');
+    field.rule('isEmpty');
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
       'type': 'validator',
-      'name': 'isNull',
+      'name': 'isEmpty',
       'args': [],
       'value': true
     });
   });
   it('should add a reverse rule to field chain', function() {
     var field = new validation.Field('body.id');
-    field.rule('!isNull');
+    field.rule('!isEmpty');
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
       'type': 'validator',
-      'name': 'isNull',
+      'name': 'isEmpty',
       'args': [],
       'value': false
     });
@@ -102,11 +102,11 @@ describe('FIELD', function() {
   });
   it('should add multi rules to field chain', function() {
     var field = new validation.Field('body.id');
-    field.rule('isNull').rule('isLength', [6, 32]);
+    field.rule('isEmpty').rule('isLength', [6, 32]);
     field.chain.should.instanceof(Array).with.length(2);
     field.chain[0].should.have.properties({
       'type': 'validator',
-      'name': 'isNull',
+      'name': 'isEmpty',
       'args': [],
       'value': true
     });
@@ -143,14 +143,14 @@ describe('VALIDATION', function() {
   it('should set function as validation callback', function(done) {
     var req = {};
     var res = {};
-    var fn = function(req, res, next) {
-      next();
+    var fn = function() {
+      return function(req, res, next) {
+        next();
+      };
     };
-    var middle = validation(fn);
-    middle(req, res, function() {
-      should.equal(req.validationCallback, fn);
-      done();
-    });
+    validation(fn);
+    should.equal(validation.defaultCallback, fn);
+    done();
   });
   it('should return object as Field', function() {
     var middle = validation('body.id');
@@ -158,126 +158,137 @@ describe('VALIDATION', function() {
   });
   it('should contains a missing error when the field value is\'t found', function(done) {
     var req = {};
-    var middle = validation(validation('body.id'));
-    middle(req, null, function() {
-      req.validationErrors.should.instanceof(Array).with.length(1);
-      req.validationErrors[0].should.have.properties({
-        field: 'id',
-        code: 'missing'
-      });
-      done();
+    validation(function(errors){
+      return function(req, res, next) {
+        errors.should.instanceof(Array).with.length(1);
+        errors[0].should.have.properties({
+          field: 'id',
+          message: 'missing'
+        });
+        next();
+      };
     });
+    validation(validation('body.id'))(req, null, done);
   });
   it('should not contains missing error when the field is optional and it\'s value is\'t found', function(done) {
     var req = {};
-    var middle = validation(validation('body.id', true));
-    middle(req, null, function() {
-      req.validationErrors.should.instanceof(Array).with.length(0);
-      done();
+    validation(function(errors){
+      return function(req, res, next) {
+        errors.should.instanceof(Array).with.length(0);
+        next();
+      };
     });
+    validation(validation('body.id', true))(req, null, done);
   });
   it('should contains multi missing error when the field value is\'t found', function(done) {
     var req = {};
-    var middle = validation([validation('body.id'), validation('body.name')]);
-    middle(req, null, function() {
-      req.validationErrors.should.instanceof(Array).with.length(2);
-      done();
+    validation(function(errors){
+      return function(req, res, next) {
+        errors.should.instanceof(Array).with.length(2);
+        next();
+      };
     });
+    validation([validation('body.id'), validation('body.name')])(req, null, done);
   });
   it('should contains an error when the validation is failure', function(done) {
     var req = {
-      body: {
-        id: 'abcdefg'
-      }
+      body: { id: 'abcdefg' }
     };
-    var middle = validation([
-      validation('body.id').rule('isInt')
-    ]);
-    middle(req, null, function() {
-      req.validationErrors.should.instanceof(Array).with.length(1);
-      req.validationErrors[0].should.have.properties({
-        field: 'id',
-        code: 'invalid'
-      });
-      done();
+    validation(function(errors) {
+      return function(req, res, next) {
+        errors.should.instanceof(Array).with.length(1);
+        errors[0].should.have.properties({
+          field: 'id',
+          message: 'invalid'
+        });
+        next();
+      };
     });
+    validation(validation('body.id').rule('isInt'))(req, null, done);
   });
+  
+  it('should contains an error with custom message when the validation is failure', function(done) {
+    var req = {
+      body: { id: 'abc' }
+    };
+    validation(function(errors) {
+      return function(req, res, next) {
+        errors.should.instanceof(Array).with.length(1);
+        errors[0].should.have.properties({
+          field: 'id',
+          message: 'field id length must between 6 to 20'
+        });
+        next();
+      };
+    });
+    validation(validation('body.id').rule('isLength', [6, 20], 'field {0} length must between {1} to {2}'))(req, null, done);
+  });
+  
   it('should contains an error when the validations is failure', function(done) {
     var req = {
-      body: {
-        id: 'abcdefg'
-      }
+      body: { id: 'abcdefg' }
     };
-    var middle = validation([
-      validation('body.id').rule('isInt').rule('isLength', 10)
-    ]);
-    middle(req, null, function() {
-      req.validationErrors.should.instanceof(Array).with.length(1);
-      req.validationErrors[0].should.have.properties({
-        field: 'id',
-        code: 'invalid'
-      });
-      done();
+    validation(function(errors) {
+      return function(req, res, next) {
+        errors.should.instanceof(Array).with.length(1);
+        errors[0].should.have.properties({
+          field: 'id',
+          message: 'invalid'
+        });
+        next();
+      };
     });
+    validation(
+      validation('body.id').rule('isInt').rule('isLength', 10)
+    )(req, null, done);
   });
   it('should contains errors when the validations is failure', function(done) {
     var req = {
-      body: {
-        id: 'abcdefg',
-        email: 'invalid email address'
-      }
+      body: { id: 'abcdefg', email: 'invalid email address' }
     };
-    var middle = validation([
+    validation(function(errors) {
+      return function(req, res, next) {
+        errors.should.instanceof(Array).with.length(2);
+        errors[0].should.have.properties({
+          field: 'id',
+          message: 'invalid'
+        });
+        errors[1].should.have.properties({
+          field: 'email',
+          message: 'invalid'
+        });
+        next();
+      };
+    });
+    validation([
       validation('body.id').rule('isInt').rule('isLength', 10),
       validation('body.email').rule('isEmail').rule('isLength', 40)
-    ]);
-    middle(req, null, function() {
-      req.validationErrors.should.instanceof(Array).with.length(2);
-      req.validationErrors[0].should.have.properties({
-        field: 'id',
-        code: 'invalid'
-      });
-      req.validationErrors[1].should.have.properties({
-        field: 'email',
-        code: 'invalid'
-      });
-      done();
-    });
+    ])(req, null, done);    
   });
   it('should execute callback when the validation complete', function(done) {
     var req = {
-      body: {
-        id: 'abcdefg'
-      }
+      body: { id: 'abcdefg' }
     };
-    var res = {
-      locals: {}
-    };
+    var res = { locals: {} };
     var middle = validation([
       validation('body.id').rule('isInt').rule('isLength', 10)
-    ], function (req, res, next) {
-      res.locals.errors = req.validationErrors;
-      next();
+    ], function(errors) {
+      return function (req, res, next) {
+        errors.should.instanceof(Array).with.length(1);
+        errors[0].should.have.properties({
+          field: 'id',
+          message: 'invalid'
+        });
+        next();
+      }
     });
-    middle(req, res, function() {
-      req.validationErrors.should.instanceof(Array).with.length(1);
-      req.validationErrors[0].should.have.properties({
-        field: 'id',
-        code: 'invalid'
-      });
-      res.locals.errors.should.equal(req.validationErrors);
-      done();
-    });
+    middle(req, res, done);
   });
   it('should execute sanitizer', function(done) {
     var req = {
-      body: {
-        id: '123456'
-      }
+      body: { id: '123456' }
     };
-    var middle = validation([
-      validation('body.id').sani('toInt')
-    ]);
+    var middle = validation([ validation('body.id').sani('toInt') ]);
     middle(req, null, function() {
       req.body.id.should.be.type('number').and.equal(123456);
       done();
@@ -301,14 +312,16 @@ describe('EXTEND', function() {
     var middle = validation([
       validation('body.whitespace').rule('isWhitespace'),
       validation('body.notWihiteSpace').rule('isWhitespace')
-    ]);
-    middle(req, null, function() {
-      req.validationErrors.should.instanceof(Array).with.length(1);
-      req.validationErrors[0].should.have.properties({
-        field: 'notWihiteSpace',
-        code: 'invalid'
-      });
-      done();
+    ], function(errors) {
+      return function(req, res, next) {
+        errors.should.instanceof(Array).with.length(1);
+        errors[0].should.have.properties({
+          field: 'notWihiteSpace',
+          message: 'invalid'
+        });
+        next();
+      }
     });
+    middle(req, null, done);
   });
 });

@@ -1,7 +1,7 @@
 {
   "name": "validator-middleware",
   "description": "Another express middleware for the validator module",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "author": "lvyuanjiao <lvyuanjiao@yeah.net>",
   "contributors": [{
     "name": "Lv yuanjiao",
@@ -30,11 +30,11 @@
     "test": "mocha"
   },
   "dependencies": {
-    "validator": "*"
+    "validator": "~6.2.1"
   },
   "devDependencies": {
-    "mocha": "^2.0.0",
-    "should": "^7.0.0"
+    "mocha": "~3.2.0",
+    "should": "~11.2.0"
   },
   "readmeFilename": "README.md",
   "license": "MIT"

@@ -8,10 +8,8 @@ function Validation(fields, callback) {
 
   // Fields as middleware to set validation callback function
   if (typeof fields === 'function') {
-    return function(req, res, next) {
-      req.validationCallback = fields;
-      next();
-    };
+    Validation.defaultCallback = fields;
+    return;
   }
 
   // Fields as field name to construct a Field object
@@ -31,17 +29,17 @@ function Validation(fields, callback) {
       setProp(req, field.qualifiedName, val);
     }
 
-    series(fields, function(field, next) {
+    series(fields, function(field, cb) {
       var val = getFieldValue(field);
       if (!val) {
         var error = null;
         if (!field.optional) {
           error = {
             'field': field.name,
-            'code': 'missing'
+            'message': 'missing'
           };
         }
-        return next(null, error);
+        return cb(null, error);
       }
       series(field.chain, function(rule, callback) {
         var fn = validator[rule.name];
@@ -50,7 +48,7 @@ function Validation(fields, callback) {
           if (fn.apply(validator, [].concat(val, rule.args)) !== rule.value) {
             error = {
               'field': field.name,
-              'code': formatMessage(rule.msg || 'invalid', [].concat(field.name, rule.args))
+              'message': formatMessage(rule.msg || 'invalid', [].concat(field.name, rule.args))
             }
           }
         } else if (rule.type === 'sanitizer') {
@@ -58,19 +56,17 @@ function Validation(fields, callback) {
         }
         callback(error);
       }, function(err) {
-        next(null, err);
+        cb(null, err);
       });
     }, function(err, errors) {
-      req.validationErrors = [];
       errors = errors.filter(function(error) {
         return error;
       });
       if (errors.length > 0) {
-        req.validationErrors = errors;
-        var render = callback || req.validationCallback || function(req, res, next) {
-          next();
+        var render = callback || Validation.defaultCallback || function() {
+          return function(req, res, next) { next(); }
         };
-        render(req, res, next);
+        render(errors)(req, res, next);
       } else {
         next();
       }
@@ -79,7 +75,7 @@ function Validation(fields, callback) {
 };
 
 Validation.extend = function(name, handler) {
-  validator.extend(name, handler);
+  validator[name] = handler;
 }
 
 function Field(field, optional) {
