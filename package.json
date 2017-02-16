@@ -5,8 +5,7 @@
   "author": "lvyuanjiao <lvyuanjiao@yeah.net>",
   "contributors": [{
     "name": "Lv yuanjiao",
-    "email": "lvyuanjiao@yeah.net",
-    "url": "http://lvyuanjiao.com"
+    "email": "lvyuanjiao@yeah.net"
   }],
   "homepage": "https://github.com/lvyuanjiao/validator-middleware",
   "repository": {
