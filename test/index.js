@@ -1,23 +1,13 @@
 import should from 'should';
 import validate, { field as fieldBuilder } from '../src/index';
 import Field from '../src/field';
+import validator from 'validator';
 
 const dummy = () => false;
 const dummyPass = () => true;
 const toInt = str => parseInt(str, 10);
 
 describe('FIELD', () => {
-  it('should throw error when the field name is invalid', () => {
-    should.throws(() => {
-      fieldBuilder('');
-    }, (err) => {
-      if ((err instanceof Error) && /Invalid field name/.test(err)) {
-        return true;
-      }
-      return false;
-    });
-  });
-
   it('should construct a Field object', () => {
     const field = fieldBuilder('body.id');
     should.equal(field.name, 'id');
@@ -319,6 +309,21 @@ describe('VALIDATION', () => {
         field: 'email',
         message: 'invalid',
       });
+      done();
+    });
+  });
+});
+
+describe('With validator.js', () => {
+  it('should execute promise rule', (done) => {
+    const req = {
+      body: { id: '123456' },
+    };
+    const res = {};
+    const field = fieldBuilder('body.id').rule(validator.isInt).sani(validator.toInt);
+    validate(field)(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(0);
+      req.body.id.should.be.type('number').and.equal(123456);
       done();
     });
   });

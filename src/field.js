@@ -1,8 +1,6 @@
 import series from './series';
 import formatMessage from './format-message';
 
-const isQualifiedName = name => /^[a-zA-Z_$]([a-zA-Z_$][a-zA-Z\d_$]*\.)*[a-zA-Z_$][a-zA-Z\d_$]*[a-zA-Z\d_$]$/.test(name);
-
 const isFuncExist = (func, fieldname) => {
   if (!func) {
     throw new Error(`Validator for '${fieldname}' not implement`);
@@ -37,9 +35,6 @@ const getProp = (obj, qualifiedName) => {
 
 export default class Field {
   constructor(field, optional) {
-    if (!isQualifiedName(field)) {
-      throw new Error('Invalid field name');
-    }
     this.name = field.split('.').pop();
     this.qualifiedName = field;
     this.optional = optional || false;
