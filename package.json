@@ -25,7 +25,7 @@
   ],
   "main": "./lib/index.js",
   "engines": {
-    "node": "*"
+    "node": ">= 8.0.0"
   },
   "scripts": {
     "build": "babel ./src --out-dir ./lib",
