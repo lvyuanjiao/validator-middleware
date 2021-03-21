@@ -1,7 +1,7 @@
 import should from 'should';
+import validator from 'validator';
 import validate, { field as fieldBuilder } from '../src/index';
 import Field from '../src/field';
-import validator from 'validator';
 
 const dummy = () => false;
 const dummyPass = () => true;
@@ -11,14 +11,14 @@ describe('FIELD', () => {
   it('should construct a Field object', () => {
     const field = fieldBuilder('body.id');
     should.equal(field.name, 'id');
-    should.equal(field.optional, false);
+    should.equal(field.isOptional, false);
     field.chain.should.instanceof(Array).with.length(0);
   });
 
   it('should construct a optional Field object', () => {
-    const field = fieldBuilder('body.id', true);
+    const field = fieldBuilder('body.id').optional();
     should.equal(field.name, 'id');
-    should.equal(field.optional, true);
+    should.equal(field.isOptional, true);
     field.chain.should.instanceof(Array).with.length(0);
   });
 
@@ -164,7 +164,7 @@ describe('VALIDATION', () => {
   it('should not contains missing error when the field is optional and it\'s value is\'t found', (done) => {
     const req = {};
     const res = {};
-    validate(fieldBuilder('body.id', true))(req, res, () => {
+    validate(fieldBuilder('body.id').optional())(req, res, () => {
       res.errors.should.instanceof(Array).with.length(0);
       done();
     });

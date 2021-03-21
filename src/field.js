@@ -34,10 +34,10 @@ const getProp = (obj, qualifiedName) => {
 };
 
 export default class Field {
-  constructor(field, optional) {
+  constructor(field) {
     this.name = field.split('.').pop();
     this.qualifiedName = field;
-    this.optional = optional || false;
+    this.isOptional = false;
     this.chain = [];
 
     this.nextValueFlag = false;
@@ -45,6 +45,11 @@ export default class Field {
 
   static RULE = 'RULE';
   static SANI = 'SANI';
+
+  optional() {
+    this.isOptional = true;
+    return this;
+  }
 
   rule(func, ...args) {
     isFuncExist(func, this.qualifiedName);
@@ -89,7 +94,7 @@ export default class Field {
     const setFieldValue = value => setProp(req, this.qualifiedName, value);
 
     const val = getFieldValue();
-    if (!val && !this.optional) {
+    if (!val && !this.isOptional) {
       return callback(null, {
         field: this.name,
         message: 'missing',
