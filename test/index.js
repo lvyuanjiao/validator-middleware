@@ -1,327 +1,325 @@
-'use strict';
+import should from 'should';
+import validate, { field as fieldBuilder } from '../src/index';
+import Field from '../src/field';
 
-var should = require('should');
-var validation = require('../index');
+const dummy = () => false;
+const dummyPass = () => true;
+const toInt = str => parseInt(str, 10);
 
-describe('FIELD', function() {
-  it('should throw error when the field name is invalid', function() {
-    should.throws(function() {
-      new validation.Field('');
-    }, function(err) {
+describe('FIELD', () => {
+  it('should throw error when the field name is invalid', () => {
+    should.throws(() => {
+      fieldBuilder('');
+    }, (err) => {
       if ((err instanceof Error) && /Invalid field name/.test(err)) {
         return true;
       }
+      return false;
     });
   });
-  it('should construct a Field object', function() {
-    var field = new validation.Field('body.id');
+
+  it('should construct a Field object', () => {
+    const field = fieldBuilder('body.id');
     should.equal(field.name, 'id');
     should.equal(field.optional, false);
     field.chain.should.instanceof(Array).with.length(0);
   });
-  it('should construct a optional Field object', function() {
-    var field = new validation.Field('body.id', true);
+
+  it('should construct a optional Field object', () => {
+    const field = fieldBuilder('body.id', true);
     should.equal(field.name, 'id');
     should.equal(field.optional, true);
     field.chain.should.instanceof(Array).with.length(0);
   });
-  it('should throw an error when validator not found', function() {
-    should.throws(function() {
-      new validation.Field('body.id').rule('undefined_function_name');
-    }, function(err) {
-      if ((err instanceof Error) && /Validator undefined_function_name not found/.test(err)) {
+
+  it('should throw an error when validator not found', () => {
+    should.throws(() => {
+      fieldBuilder('body.id').rule(undefined);
+    }, (err) => {
+      if ((err instanceof Error) && /Validator for 'body.id' not implement/.test(err)) {
         return true;
       }
+      return false;
     });
   });
-  it('should throw an error when sanitizer is not found', function() {
-    should.throws(function() {
-      new validation.Field('body.id').sani('undefined_function_name');
-    }, function(err) {
-      if ((err instanceof Error) && /Validator undefined_function_name not found/.test(err)) {
+
+  it('should throw an error when sanitizer is not found', () => {
+    should.throws(() => {
+      fieldBuilder('body.id').sani(undefined);
+    }, (err) => {
+      if ((err instanceof Error) && /Validator for 'body.id' not implement/.test(err)) {
         return true;
       }
+      return false;
     });
   });
-  it('should add a rule to field chain', function() {
-    var field = new validation.Field('body.id');
-    field.rule('isEmpty');
+
+  it('should add a rule to field chain', () => {
+    const field = fieldBuilder('body.id');
+    field.rule(dummy);
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
-      'type': 'validator',
-      'name': 'isEmpty',
-      'args': [],
-      'value': true
+      type: Field.RULE,
+      func: dummy,
+      args: [],
+      value: true,
     });
   });
-  it('should add a reverse rule to field chain', function() {
-    var field = new validation.Field('body.id');
-    field.rule('!isEmpty');
+
+  it('should add a reverse rule to field chain', () => {
+    const field = fieldBuilder('body.id');
+    field.not(dummy);
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
-      'type': 'validator',
-      'name': 'isEmpty',
-      'args': [],
-      'value': false
+      type: Field.RULE,
+      func: dummy,
+      args: [],
+      value: false,
     });
   });
-  it('should add a rule with single arg to field chain', function() {
-    var field = new validation.Field('body.id');
-    field.rule('isLength', 6);
+
+  it('should add a rule with single arg to field chain', () => {
+    const field = fieldBuilder('body.id');
+    field.rule(dummy, 6);
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
-      'type': 'validator',
-      'name': 'isLength',
-      'args': [6],
-      'value': true
+      type: Field.RULE,
+      func: dummy,
+      args: [6],
+      value: true,
     });
   });
-  it('should add a rule with multi args to field chain', function() {
-    var field = new validation.Field('body.id');
-    field.rule('isLength', [6, 32]);
+
+  it('should add a rule with multi args to field chain', () => {
+    const field = fieldBuilder('body.id');
+    field.rule(dummy, 6, 32);
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
-      'type': 'validator',
-      'name': 'isLength',
-      'args': [6, 32],
-      'value': true
+      type: Field.RULE,
+      func: dummy,
+      args: [6, 32],
+      value: true,
     });
   });
-  it('should add a rule with msg to field chain', function() {
-    var field = new validation.Field('body.id');
-    var msg = 'please enter at least {0} characters';
-    field.rule('isLength', 6, msg);
+
+  it('should add a rule with msg to field chain', () => {
+    const field = fieldBuilder('body.id');
+    const message = 'please enter at least {0} characters';
+    field.rule(dummy, 6).message(message);
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
-      'type': 'validator',
-      'name': 'isLength',
-      'args': [6],
-      'value': true,
-      'msg': msg
+      type: Field.RULE,
+      func: dummy,
+      args: [6],
+      value: true,
+      message,
     });
   });
-  it('should add multi rules to field chain', function() {
-    var field = new validation.Field('body.id');
-    field.rule('isEmpty').rule('isLength', [6, 32]);
+
+  it('should add multi rules to field chain', () => {
+    const field = fieldBuilder('body.id');
+    field.rule(dummy).rule(dummy, [6, 32]);
     field.chain.should.instanceof(Array).with.length(2);
     field.chain[0].should.have.properties({
-      'type': 'validator',
-      'name': 'isEmpty',
-      'args': [],
-      'value': true
+      type: Field.RULE,
+      func: dummy,
+      args: [],
+      value: true,
     });
     field.chain[1].should.have.properties({
-      'type': 'validator',
-      'name': 'isLength',
-      'args': [6, 32],
-      'value': true
+      type: Field.RULE,
+      func: dummy,
+      args: [6, 32],
+      value: true,
     });
   });
-  it('should add a sanitizer to field chain', function() {
-    var field = new validation.Field('body.id');
-    field.sani('toInt');
+
+  it('should add a sanitizer to field chain', () => {
+    const field = fieldBuilder('body.id');
+    field.sani(dummy);
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
-      'type': 'sanitizer',
-      'name': 'toInt',
-      'args': []
+      type: Field.SANI,
+      func: dummy,
+      args: [],
     });
   });
-  it('should add a sanitizer with args to field chain', function() {
-    var field = new validation.Field('body.id');
-    field.sani('trim', ['a', 'b']);
+
+  it('should add a sanitizer with args to field chain', () => {
+    const field = fieldBuilder('body.id');
+    field.sani(dummy, ['a', 'b']);
     field.chain.should.instanceof(Array).with.length(1);
     field.chain[0].should.have.properties({
-      'type': 'sanitizer',
-      'name': 'trim',
-      'args': ['a', 'b']
+      type: Field.SANI,
+      func: dummy,
+      args: ['a', 'b'],
     });
   });
 });
 
-describe('VALIDATION', function() {
-  it('should set function as validation callback', function(done) {
-    var req = {};
-    var res = {};
-    var fn = function() {
-      return function(req, res, next) {
-        next();
-      };
+describe('VALIDATION', () => {
+  it('should contains a missing error when the field value is\'t found', (done) => {
+    const req = {};
+    const res = {};
+    validate(fieldBuilder('body.id'))(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(1);
+      res.errors[0].should.have.properties({
+        field: 'id',
+        message: 'missing',
+      });
+      done();
+    });
+  });
+
+  it('should not contains missing error when the field is optional and it\'s value is\'t found', (done) => {
+    const req = {};
+    const res = {};
+    validate(fieldBuilder('body.id', true))(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(0);
+      done();
+    });
+  });
+
+  it('should contains multi missing error when the field value is\'t found', (done) => {
+    const req = {};
+    const res = {};
+    validate(
+      fieldBuilder('body.id'),
+      fieldBuilder('body.name')
+    )(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(2);
+      done();
+    });
+  });
+
+  it('should contains an error when the validation is failure', (done) => {
+    const req = {
+      body: { id: 'abcdefg' },
     };
-    validation(fn);
-    should.equal(validation.defaultCallback, fn);
-    done();
-  });
-  it('should return object as Field', function() {
-    var middle = validation('body.id');
-    middle.should.instanceof(validation.Field);
-  });
-  it('should contains a missing error when the field value is\'t found', function(done) {
-    var req = {};
-    validation(function(errors){
-      return function(req, res, next) {
-        errors.should.instanceof(Array).with.length(1);
-        errors[0].should.have.properties({
-          field: 'id',
-          message: 'missing'
-        });
-        next();
-      };
+    const res = {};
+    validate(fieldBuilder('body.id').rule(dummy))(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(1);
+      res.errors[0].should.have.properties({
+        field: 'id',
+        message: 'invalid',
+      });
+      done();
     });
-    validation(validation('body.id'))(req, null, done);
   });
-  it('should not contains missing error when the field is optional and it\'s value is\'t found', function(done) {
-    var req = {};
-    validation(function(errors){
-      return function(req, res, next) {
-        errors.should.instanceof(Array).with.length(0);
-        next();
-      };
-    });
-    validation(validation('body.id', true))(req, null, done);
-  });
-  it('should contains multi missing error when the field value is\'t found', function(done) {
-    var req = {};
-    validation(function(errors){
-      return function(req, res, next) {
-        errors.should.instanceof(Array).with.length(2);
-        next();
-      };
-    });
-    validation([validation('body.id'), validation('body.name')])(req, null, done);
-  });
-  it('should contains an error when the validation is failure', function(done) {
-    var req = {
-      body: { id: 'abcdefg' }
+
+  it('should contains an error with custom message when the validation is failure', (done) => {
+    const req = {
+      body: { id: 'abc' },
     };
-    validation(function(errors) {
-      return function(req, res, next) {
-        errors.should.instanceof(Array).with.length(1);
-        errors[0].should.have.properties({
-          field: 'id',
-          message: 'invalid'
-        });
-        next();
-      };
+    const res = {};
+    const field = fieldBuilder('body.id').rule(dummy, 6, 20).message('field {0} length must between {1} to {2}');
+    validate(field)(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(1);
+      res.errors[0].should.have.properties({
+        field: 'id',
+        message: 'field id length must between 6 to 20',
+      });
+      done();
     });
-    validation(validation('body.id').rule('isInt'))(req, null, done);
   });
-  
-  it('should contains an error with custom message when the validation is failure', function(done) {
-    var req = {
-      body: { id: 'abc' }
+
+  it('should contains an error when the validations is failure', (done) => {
+    const req = {
+      body: { id: 'abcdefg' },
     };
-    validation(function(errors) {
-      return function(req, res, next) {
-        errors.should.instanceof(Array).with.length(1);
-        errors[0].should.have.properties({
-          field: 'id',
-          message: 'field id length must between 6 to 20'
-        });
-        next();
-      };
+    const res = {};
+    const field = fieldBuilder('body.id').rule(dummy).rule(dummy);
+    validate(field)(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(1);
+      res.errors[0].should.have.properties({
+        field: 'id',
+        message: 'invalid',
+      });
+      done();
     });
-    validation(validation('body.id').rule('isLength', [6, 20], 'field {0} length must between {1} to {2}'))(req, null, done);
   });
-  
-  it('should contains an error when the validations is failure', function(done) {
-    var req = {
-      body: { id: 'abcdefg' }
+
+  it('should contains errors when the validations is failure', (done) => {
+    const req = {
+      body: { id: 'abcdefg', email: 'invalid email address' },
     };
-    validation(function(errors) {
-      return function(req, res, next) {
-        errors.should.instanceof(Array).with.length(1);
-        errors[0].should.have.properties({
-          field: 'id',
-          message: 'invalid'
-        });
-        next();
-      };
+    const res = {};
+    const fields = [
+      fieldBuilder('body.id').rule(dummy),
+      fieldBuilder('body.email').rule(dummy),
+    ];
+    validate(...fields)(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(2);
+      res.errors[0].should.have.properties({
+        field: 'id',
+        message: 'invalid',
+      });
+      res.errors[1].should.have.properties({
+        field: 'email',
+        message: 'invalid',
+      });
+      done();
     });
-    validation(
-      validation('body.id').rule('isInt').rule('isLength', 10)
-    )(req, null, done);
   });
-  it('should contains errors when the validations is failure', function(done) {
-    var req = {
-      body: { id: 'abcdefg', email: 'invalid email address' }
+
+  it('should not contains any errors when the validation pass', (done) => {
+    const req = {
+      body: { id: 'abcdefg' },
     };
-    validation(function(errors) {
-      return function(req, res, next) {
-        errors.should.instanceof(Array).with.length(2);
-        errors[0].should.have.properties({
-          field: 'id',
-          message: 'invalid'
-        });
-        errors[1].should.have.properties({
-          field: 'email',
-          message: 'invalid'
-        });
-        next();
-      };
+    const res = {};
+    const field = fieldBuilder('body.id').rule(dummyPass);
+    validate(field)(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(0);
+      done();
     });
-    validation([
-      validation('body.id').rule('isInt').rule('isLength', 10),
-      validation('body.email').rule('isEmail').rule('isLength', 40)
-    ])(req, null, done);    
   });
-  it('should execute callback when the validation complete', function(done) {
-    var req = {
-      body: { id: 'abcdefg' }
+
+  it('should execute sanitizer', (done) => {
+    const req = {
+      body: { id: '123456' },
     };
-    var res = { locals: {} };
-    var middle = validation([
-      validation('body.id').rule('isInt').rule('isLength', 10)
-    ], function(errors) {
-      return function (req, res, next) {
-        errors.should.instanceof(Array).with.length(1);
-        errors[0].should.have.properties({
-          field: 'id',
-          message: 'invalid'
-        });
-        next();
-      }
-    });
-    middle(req, res, done);
-  });
-  it('should execute sanitizer', function(done) {
-    var req = {
-      body: { id: '123456' }
-    };
-    var middle = validation([ validation('body.id').sani('toInt') ]);
-    middle(req, null, function() {
+    const res = {};
+    const field = fieldBuilder('body.id').sani(toInt);
+    validate(field)(req, res, () => {
       req.body.id.should.be.type('number').and.equal(123456);
       done();
     });
   });
-});
 
-describe('EXTEND', function() {
-  it('should extend custom validator', function(done) {
-    validation.extend('isWhitespace', function (str) {
-      return /^\s+$/.test(str);
-    });
-    should.exist(validation.validator.isWhitespace);
-    validation.validator.isWhitespace.should.be.type('function');
-    var req = {
-      body: {
-        whitespace: '   ',
-        notWihiteSpace: ' test '
-      }
+  it('should resolve args as function', (done) => {
+    const resolveArgs = req => req.body.retypePassword;
+    const req = {
+      body: { password: 'abcdefg', retypePassword: 'abcdefg' },
     };
-    var middle = validation([
-      validation('body.whitespace').rule('isWhitespace'),
-      validation('body.notWihiteSpace').rule('isWhitespace')
-    ], function(errors) {
-      return function(req, res, next) {
-        errors.should.instanceof(Array).with.length(1);
-        errors[0].should.have.properties({
-          field: 'notWihiteSpace',
-          message: 'invalid'
-        });
-        next();
-      }
+    const res = {};
+    const field = fieldBuilder('body.password').rule((password, retypePassword) => {
+      should(password).equal(retypePassword);
+      should(req.body.retypePassword).equal(retypePassword);
+    }, resolveArgs);
+    validate(field)(req, res, () => {
+      done();
     });
-    middle(req, null, done);
+  });
+
+  it('should execute promise rule', (done) => {
+    const req = {
+      body: { email: 'abc@cde.com' },
+    };
+    const res = {};
+
+    const promiseRule = (email) => {
+      should(email).equal(req.body.email);
+      return Promise.resolve(false);
+    };
+
+    const field = fieldBuilder('body.email').rule(promiseRule);
+    validate(field)(req, res, () => {
+      res.errors.should.instanceof(Array).with.length(1);
+      res.errors[0].should.have.properties({
+        field: 'email',
+        message: 'invalid',
+      });
+      done();
+    });
   });
 });

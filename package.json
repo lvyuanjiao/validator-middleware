@@ -1,18 +1,20 @@
 {
   "name": "validator-middleware",
   "description": "Another express middleware for the validator module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "lvyuanjiao <lvyuanjiao@yeah.net>",
-  "contributors": [{
-    "name": "Lv yuanjiao",
-    "email": "lvyuanjiao@yeah.net"
-  }],
+  "contributors": [
+    {
+      "name": "Lv yuanjiao",
+      "email": "lvyuanjiao@yeah.net"
+    }
+  ],
   "homepage": "https://github.com/lvyuanjiao/validator-middleware",
   "repository": {
     "type": "git",
     "url": "https://github.com/lvyuanjiao/validator-middleware.git"
   },
-	"bugs": {
+  "bugs": {
     "url": "https://github.com/lvyuanjiao/validator-middleware/issues"
   },
   "keywords": [
@@ -21,17 +23,26 @@
     "validation",
     "validator.js"
   ],
-  "main": "index.js",
+  "main": "./lib/index.js",
   "engines": {
     "node": "*"
   },
   "scripts": {
-    "test": "mocha"
+    "build": "babel ./src --out-dir ./lib",
+    "test": "mocha --require @babel/register"
   },
-  "dependencies": {
-    "validator": "~6.2.1"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/register": "^7.0.0",
+    "babel-eslint": "^10.0.1",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "babel-plugin-add-module-exports": "^1.0.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.11.0",
     "mocha": "~3.2.0",
     "should": "~11.2.0"
   },
