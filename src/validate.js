@@ -5,6 +5,6 @@ export default (...fields) => (req, res, next) => {
     field.validate(req, nextField);
   }, (err, results) => {
     res.errors = results.filter(error => error);
-    next();
+    next(err);
   });
 };

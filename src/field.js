@@ -118,7 +118,7 @@ export default class Field {
               message: formatMessage(rule.message, this.name, ...args),
             };
           }
-          nextRule(error);
+          nextRule(null, error);
         }).catch(nextRule);
       } else if (rule.type === Field.RULE) {
         if (result !== rule.value) {
@@ -130,9 +130,9 @@ export default class Field {
       } else if (rule.type === Field.SANI) {
         setFieldValue(result);
       }
-      return nextRule(error);
-    }, (err) => {
-      callback(null, err);
+      return nextRule(null, error);
+    }, (err, [results]) => {
+      callback(err, results);
     });
   }
 }
