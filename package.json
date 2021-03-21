@@ -1,7 +1,7 @@
 {
   "name": "validator-middleware",
   "description": "Another express middleware for the validator module",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "lvyuanjiao <lvyuanjiao@yeah.net>",
   "contributors": [
     {
