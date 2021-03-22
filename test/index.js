@@ -1,6 +1,6 @@
 import should from 'should';
 import validator from 'validator';
-import validate, { field as fieldBuilder } from '../src/index';
+import validate, { body, query, cookie, header, param, field as fieldBuilder } from '../src/index';
 import Field from '../src/field';
 
 const dummy = () => false;
@@ -311,6 +311,14 @@ describe('VALIDATION', () => {
       });
       done();
     });
+  });
+
+  it('Should field name equal to field alias', () => {
+    should(body('id').qualifiedName).equal('body.id');
+    should(query('id').qualifiedName).equal('query.id');
+    should(param('id').qualifiedName).equal('params.id');
+    should(cookie('id').qualifiedName).equal('cookies.id');
+    should(header('id').qualifiedName).equal('headers.id');
   });
 });
 
