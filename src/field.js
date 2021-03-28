@@ -93,14 +93,19 @@ export default class Field {
     const getFieldValue = () => getProp(req, this.qualifiedName);
     const setFieldValue = value => setProp(req, this.qualifiedName, value);
 
-    const val = getFieldValue();
-    if (!val && !this.isOptional) {
+    let val = getFieldValue();
+    const undef = (val === undefined || val === null);
+    if (undef) {
+      if (this.isOptional) {
+        return callback();
+      }
       return callback(null, {
         field: this.name,
         message: 'missing',
       });
     }
 
+    val = (typeof val !== 'string') ? (`${val}`) : val;
     return series(this.chain, (rule, nextRule) => {
       let error = null;
       const args = rule.args.map((arg) => {
