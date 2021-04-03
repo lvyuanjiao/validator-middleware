@@ -119,7 +119,7 @@ describe('FIELD', () => {
     field.chain[1].should.have.properties({
       type: Field.RULE,
       func: dummy,
-      args: [6, 32],
+      args: [[6, 32]],
       value: true,
     });
   });
@@ -142,7 +142,7 @@ describe('FIELD', () => {
     field.chain[0].should.have.properties({
       type: Field.SANI,
       func: dummy,
-      args: ['a', 'b'],
+      args: [['a', 'b']],
     });
   });
 });
@@ -282,10 +282,11 @@ describe('VALIDATION', () => {
       body: { password: 'abcdefg', retypePassword: 'abcdefg' },
     };
     const res = {};
-    const field = fieldBuilder('body.password').rule((password, retypePassword) => {
+    const field = fieldBuilder('body.password').rule((password, [retypePassword, retypePassword2]) => {
       should(password).equal(retypePassword);
       should(req.body.retypePassword).equal(retypePassword);
-    }, resolveArgs);
+      should(retypePassword).equal(retypePassword2);
+    }, resolveArgs, resolveArgs);
     validate(field)(req, res, () => {
       done();
     });

@@ -57,7 +57,7 @@ export default class Field {
     const rule = {
       type: Field.RULE,
       func,
-      args: [].concat(...args),
+      args,
       value: true,
       message: 'invalid',
     };
@@ -84,7 +84,7 @@ export default class Field {
     this.chain.push({
       type: Field.SANI,
       func,
-      args: [].concat(...args),
+      args,
     });
     return this;
   }
@@ -114,7 +114,7 @@ export default class Field {
         }
         return arg;
       });
-      const result = rule.func(...[val, ...args]);
+      const result = rule.func(...[val, args]);
       if (isPromise(result)) {
         return result.then((promiseResult) => {
           if (promiseResult !== rule.value) {
